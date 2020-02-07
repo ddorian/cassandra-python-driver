@@ -36,7 +36,7 @@ from tests.integration import (get_cluster, use_singledc, PROTOCOL_VERSION, exec
                                BasicSegregatedKeyspaceUnitTestCase, BasicSharedKeyspaceUnitTestCase,
                                BasicExistingKeyspaceUnitTestCase, drop_keyspace_shutdown_cluster, CASSANDRA_VERSION,
                                get_supported_protocol_versions, greaterthanorequalcass30, lessthancass30, local,
-                               greaterthancass20)
+                               greaterthancass20, clean_keyspace)
 
 from tests.integration import greaterthancass21
 
@@ -550,6 +550,7 @@ class SchemaMetadataTests(BasicSegregatedKeyspaceUnitTestCase):
             self.assertIn("sum_agg(int)", cluster2.metadata.keyspaces[self.keyspace_name].aggregates)
 
         # Cluster metadata modification
+        clean_keyspace(self.session, "new_keyspace")
         self.session.execute("DROP KEYSPACE new_keyspace")
         self.assertIn("new_keyspace", cluster2.metadata.keyspaces)
 
@@ -1079,7 +1080,7 @@ CREATE TABLE export_udts.users (
 
         ksname = 'AnInterestingKeyspace'
         cfname = 'AnInterestingTable'
-
+        clean_keyspace(session, ksname)
         session.execute("DROP KEYSPACE IF EXISTS {0}".format(ksname))
         session.execute("""
             CREATE KEYSPACE "%s"
@@ -1207,6 +1208,7 @@ class KeyspaceAlterMetadata(unittest.TestCase):
 
     def tearDown(self):
         name = self._testMethodName.lower()
+        clean_keyspace(self.session, name)
         self.session.execute('DROP KEYSPACE %s' % name)
         self.cluster.shutdown()
 

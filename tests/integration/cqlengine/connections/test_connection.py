@@ -24,7 +24,7 @@ from cassandra.cqlengine.management import sync_table
 from cassandra.cluster import Cluster, _clusters_for_shutdown
 from cassandra.query import dict_factory
 
-from tests.integration import PROTOCOL_VERSION, execute_with_long_wait_retry, local
+from tests.integration import PROTOCOL_VERSION, execute_with_long_wait_retry, local, clean_keyspace
 from tests.integration.cqlengine.base import BaseCassEngTestCase
 from tests.integration.cqlengine import DEFAULT_KEYSPACE, setup_connection
 from cassandra.cqlengine import models
@@ -86,6 +86,8 @@ class SeveralConnectionsTest(BaseCassEngTestCase):
 
     @classmethod
     def tearDownClass(cls):
+        clean_keyspace(cls.setup_session, cls.keyspace1)
+        clean_keyspace(cls.setup_session, cls.keyspace2)
         execute_with_long_wait_retry(cls.setup_session, "DROP KEYSPACE {0}".format(cls.keyspace1))
         execute_with_long_wait_retry(cls.setup_session, "DROP KEYSPACE {0}".format(cls.keyspace2))
         models.DEFAULT_KEYSPACE = DEFAULT_KEYSPACE

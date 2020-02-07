@@ -21,7 +21,7 @@ from cassandra.policies import HostFilterPolicy, RoundRobinPolicy
 from cassandra.concurrent import execute_concurrent_with_args
 from cassandra.query import SimpleStatement
 from tests.integration import use_singledc, PROTOCOL_VERSION, get_cluster, setup_keyspace, remove_cluster, get_node, \
-    requiresmallclockgranularity
+    requiresmallclockgranularity, clean_keyspace
 from mock import Mock
 
 try:
@@ -208,6 +208,7 @@ class ClientExceptionTests(unittest.TestCase):
         self.setFailingNodes(failing_nodes, "testksfail")
 
         # Drop temporary keyspace
+        clean_keyspace(self.session)
         self._perform_cql_statement(
             """
             DROP KEYSPACE testksfail

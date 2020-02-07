@@ -42,7 +42,8 @@ from cassandra import connection
 from tests import notwindows
 from tests.integration import use_singledc, PROTOCOL_VERSION, get_server_versions, CASSANDRA_VERSION, \
     execute_until_pass, execute_with_long_wait_retry, get_node, MockLoggingHandler, get_unsupported_lower_protocol, \
-    get_unsupported_upper_protocol, protocolv5, local, CASSANDRA_IP, greaterthanorequalcass30, lessthanorequalcass40
+    get_unsupported_upper_protocol, protocolv5, local, CASSANDRA_IP, greaterthanorequalcass30, lessthanorequalcass40, \
+    clean_keyspace
 from tests.integration.util import assert_quiescent_pool_state
 import sys
 
@@ -181,7 +182,7 @@ class ClusterTests(unittest.TestCase):
 
         result = session.execute("SELECT * FROM clustertests.cf0")
         self.assertEqual([('a', 'b', 'c')], result)
-
+        clean_keyspace(session, "clustertests")
         execute_with_long_wait_retry(session, "DROP KEYSPACE clustertests")
 
         cluster.shutdown()

@@ -23,7 +23,7 @@ except ImportError:
 
 from cassandra.cluster import Cluster
 from cassandra.protocol import ConfigurationException
-from tests.integration import use_singledc, PROTOCOL_VERSION
+from tests.integration import use_singledc, PROTOCOL_VERSION, clean_keyspace
 from tests.integration.datatype_utils import update_datatypes
 
 
@@ -42,6 +42,7 @@ class ControlConnectionTests(unittest.TestCase):
 
     def tearDown(self):
         try:
+            clean_keyspace(self.session, "keyspacetodrop")
             self.session.execute("DROP KEYSPACE keyspacetodrop ")
         except (ConfigurationException):
             # we already removed the keyspace.
@@ -73,6 +74,7 @@ class ControlConnectionTests(unittest.TestCase):
         self.session.execute("CREATE TYPE user (age int, name text)")
         self.session.execute("CREATE TABLE mytable (a int PRIMARY KEY, b frozen<user>)")
         cc_id_pre_drop = id(self.cluster.control_connection._connection)
+        clean_keyspace(self.session, "keyspacetodrop")
         self.session.execute("DROP KEYSPACE keyspacetodrop")
         cc_id_post_drop = id(self.cluster.control_connection._connection)
         self.assertEqual(cc_id_post_drop, cc_id_pre_drop)
@@ -101,5 +103,6 @@ class ControlConnectionTests(unittest.TestCase):
         # reconnect and make sure that the new host is reflected correctly
         self.cluster.control_connection._reconnect()
         new_host = self.cluster.get_control_connection_host()
+        print(host, new_host)
         self.assertNotEqual(host, new_host)
 

@@ -507,6 +507,7 @@ def execute_with_retry_tolerant(session, query, retry_exceptions, escape_excepti
 
 def drop_keyspace_shutdown_cluster(keyspace_name, session, cluster):
     try:
+        clean_keyspace(session, keyspace_name)
         execute_with_long_wait_retry(session, "DROP KEYSPACE {0}".format(keyspace_name))
     except:
         log.warning("Error encountered when droping keyspace {0}".format(keyspace_name))
@@ -516,6 +517,28 @@ def drop_keyspace_shutdown_cluster(keyspace_name, session, cluster):
     finally:
         log.warning("Shutting down cluster")
         cluster.shutdown()
+
+
+def clean_keyspace(session, keyspace):
+    from cassandra import InvalidRequest
+    q = "select table_name from system_schema.tables where keyspace_name=%s;"
+    tables = session.execute(q, (keyspace,))
+    for t in tables:
+        q2 = f"DROP TABLE {keyspace}.{t.table_name};"
+        execute_until_pass(session, q2)
+
+    q3 = f"SELECT type_name FROM system_schema.types WHERE keyspace_name=%s;"
+    while True:
+        types = list(session.execute(q3, (keyspace,)))
+        if not types:
+            break
+        for tt in types:
+            q4 = f"DROP TYPE {keyspace}.{tt.type_name};"
+            try:
+                session.execute(q4)
+            except InvalidRequest:
+                # the type is being used in another one
+                pass
 
 
 def setup_keyspace(ipformat=None, wait=True):
@@ -532,6 +555,7 @@ def setup_keyspace(ipformat=None, wait=True):
     try:
         for ksname in ('test1rf', 'test2rf', 'test3rf'):
             if ksname in cluster.metadata.keyspaces:
+                clean_keyspace(session, ksname)
                 execute_until_pass(session, "DROP KEYSPACE %s" % ksname)
 
         ddl = '''
@@ -611,6 +635,7 @@ class BasicKeyspaceUnitTestCase(unittest.TestCase):
 
     @classmethod
     def drop_keyspace(cls):
+        clean_keyspace(cls.session, cls.ks_name)
         execute_with_long_wait_retry(cls.session, "DROP KEYSPACE {0}".format(cls.ks_name))
 
     @classmethod
@@ -624,6 +649,8 @@ class BasicKeyspaceUnitTestCase(unittest.TestCase):
         cls.session = cls.cluster.connect(wait_for_all_pools=True)
         cls.ks_name = cls.__name__.lower()
         if keyspace_creation:
+            clean_keyspace(cls.session, cls.ks_name)
+            execute_with_long_wait_retry(cls.session, "DROP KEYSPACE IF EXISTS {0}".format(cls.ks_name))
             cls.create_keyspace(rf)
         cls.cass_version, cls.cql_version = get_server_versions()
 

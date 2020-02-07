@@ -22,7 +22,7 @@ from ccmlib.node import Node
 from cassandra.query import named_tuple_factory
 from cassandra.cluster import ConsistencyLevel
 
-from tests.integration import get_node, get_cluster, wait_for_node_socket
+from tests.integration import get_node, get_cluster, wait_for_node_socket, clean_keyspace
 
 IP_FORMAT = '127.0.0.%s'
 
@@ -63,6 +63,7 @@ def create_schema(cluster, session, keyspace, simple_strategy=True,
     session.default_consistency_level = ConsistencyLevel.QUORUM
 
     if keyspace in cluster.metadata.keyspaces.keys():
+        clean_keyspace(session, keyspace)
         session.execute('DROP KEYSPACE %s' % keyspace, timeout=20)
 
     if simple_strategy:

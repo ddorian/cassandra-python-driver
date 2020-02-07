@@ -28,7 +28,7 @@ from cassandra.cluster import Cluster, NoHostAvailable, ExecutionProfile
 from cassandra.policies import HostDistance, RoundRobinPolicy, WhiteListRoundRobinPolicy
 from tests.integration import use_singledc, PROTOCOL_VERSION, BasicSharedKeyspaceUnitTestCase, \
     greaterthanprotocolv3, MockLoggingHandler, get_supported_protocol_versions, local, get_cluster, setup_keyspace, \
-    USE_CASS_EXTERNAL, greaterthanorequalcass40
+    USE_CASS_EXTERNAL, greaterthanorequalcass40, clean_keyspace
 from tests import notwindows
 from tests.integration import greaterthanorequalcass30, get_node
 
@@ -1331,8 +1331,10 @@ class BaseKeyspaceTests():
 
     @classmethod
     def tearDownClass(cls):
+        clean_keyspace(cls.session, cls.alternative_ks)
         ddl = "DROP KEYSPACE {}".format(cls.alternative_ks)
         cls.session.execute(ddl)
+        clean_keyspace(cls.session, cls.ks_name)
         ddl = "DROP KEYSPACE {}".format(cls.ks_name)
         cls.session.execute(ddl)
         cls.cluster.shutdown()

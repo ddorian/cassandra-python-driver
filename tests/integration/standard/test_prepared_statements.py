@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from tests.integration import use_singledc, PROTOCOL_VERSION
+from tests.integration import use_singledc, PROTOCOL_VERSION, clean_keyspace
 
 try:
     import unittest2 as unittest
@@ -37,6 +37,8 @@ def setup_module():
     use_singledc()
 
 
+
+
 class PreparedStatementTests(unittest.TestCase):
 
     @classmethod
@@ -55,6 +57,7 @@ class PreparedStatementTests(unittest.TestCase):
         """
         Test basic PreparedStatement usage
         """
+        clean_keyspace(self.session, "preparedtests")
         self.session.execute(
             """
             DROP KEYSPACE IF EXISTS preparedtests

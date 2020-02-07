@@ -27,7 +27,7 @@ from cassandra.query import dict_factory
 from cassandra.util import OrderedMap
 
 from tests.integration import use_singledc, PROTOCOL_VERSION, execute_until_pass, BasicSegregatedKeyspaceUnitTestCase, \
-    greaterthancass20, greaterthanorequalcass36, lessthancass30
+    greaterthancass20, greaterthanorequalcass36, lessthancass30, clean_keyspace, execute_with_long_wait_retry
 from tests.integration.datatype_utils import update_datatypes, PRIMITIVE_DATATYPES, PRIMITIVE_DATATYPES_KEYS, \
     COLLECTION_TYPES, get_sample, get_collection_sample
 
@@ -574,7 +574,11 @@ class UDTTests(BasicSegregatedKeyspaceUnitTestCase):
                     type_string = "{0}_{1} {2}<{3}>".format(chr(start_index + i), chr(start_index + j),
                                                             collection_type, datatype)
                 alpha_type_list.append(type_string)
-
+        # todo fix or ignore or delete
+        qqq = """
+            CREATE TYPE alldatatypes ({0})
+        """.format(', '.join(alpha_type_list))
+        print("qqqq", qqq)
         s.execute("""
             CREATE TYPE alldatatypes ({0})
         """.format(', '.join(alpha_type_list))

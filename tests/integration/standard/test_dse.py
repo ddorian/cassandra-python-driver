@@ -71,7 +71,7 @@ class DseCCMClusterTest(unittest.TestCase):
 
         result = session.execute("SELECT * FROM clustertests.cf0")
         self.assertEqual([('a', 'b', 'c')], result)
-
+        clean_keyspace(session, "clustertests")
         execute_with_long_wait_retry(session, "DROP KEYSPACE clustertests")
 
         cluster.shutdown()

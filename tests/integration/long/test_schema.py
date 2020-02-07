@@ -18,7 +18,7 @@ from cassandra import ConsistencyLevel, AlreadyExists
 from cassandra.cluster import Cluster
 from cassandra.query import SimpleStatement
 
-from tests.integration import use_singledc, PROTOCOL_VERSION, execute_until_pass
+from tests.integration import use_singledc, PROTOCOL_VERSION, execute_until_pass, clean_keyspace
 
 try:
     import unittest2 as unittest
@@ -55,6 +55,7 @@ class SchemaTests(unittest.TestCase):
                 keyspace = "ks_{0}".format(keyspace_number)
 
                 if keyspace in self.cluster.metadata.keyspaces.keys():
+                    clean_keyspace(session, keyspace)
                     drop = "DROP KEYSPACE {0}".format(keyspace)
                     log.debug(drop)
                     execute_until_pass(session, drop)
@@ -89,7 +90,7 @@ class SchemaTests(unittest.TestCase):
 
             for j in range(100):
                 execute_until_pass(session, "INSERT INTO test_{0}.cf (key, value) VALUES ({1}, {1})".format(i, j))
-
+            clean_keyspace(session, f"test_{i}")
             execute_until_pass(session, "DROP KEYSPACE test_{0}".format(i))
 
     def test_for_schema_disagreements_same_keyspace(self):
@@ -104,6 +105,7 @@ class SchemaTests(unittest.TestCase):
             try:
                 execute_until_pass(session, "CREATE KEYSPACE test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}")
             except AlreadyExists:
+                clean_keyspace(session, "test")
                 execute_until_pass(session, "DROP KEYSPACE test")
                 execute_until_pass(session, "CREATE KEYSPACE test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}")
 
@@ -111,7 +113,7 @@ class SchemaTests(unittest.TestCase):
 
             for j in range(100):
                 execute_until_pass(session, "INSERT INTO test.cf (key, value) VALUES ({0}, {0})".format(j))
-
+            clean_keyspace(session, "test")
             execute_until_pass(session, "DROP KEYSPACE test")
         cluster.shutdown()
 
@@ -139,6 +141,7 @@ class SchemaTests(unittest.TestCase):
         rs = session.execute(SimpleStatement("CREATE TABLE test_schema_disagreement.cf (key int PRIMARY KEY, value int)",
                                              consistency_level=ConsistencyLevel.ALL))
         self.check_and_wait_for_agreement(session, rs, False)
+        clean_keyspace(session, "test_schema_disagreement")
         rs = session.execute("DROP KEYSPACE test_schema_disagreement")
         self.check_and_wait_for_agreement(session, rs, False)
         cluster.shutdown()
@@ -151,6 +154,7 @@ class SchemaTests(unittest.TestCase):
         rs = session.execute(SimpleStatement("CREATE TABLE test_schema_disagreement.cf (key int PRIMARY KEY, value int)",
                                              consistency_level=ConsistencyLevel.ALL))
         self.check_and_wait_for_agreement(session, rs, True)
+        clean_keyspace(session, "test_schema_disagreement")
         rs = session.execute("DROP KEYSPACE test_schema_disagreement")
         self.check_and_wait_for_agreement(session, rs, True)
         cluster.shutdown()

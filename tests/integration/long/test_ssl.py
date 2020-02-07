@@ -21,7 +21,7 @@ import os, sys, traceback, logging, ssl, time
 from cassandra.cluster import Cluster, NoHostAvailable
 from cassandra import ConsistencyLevel
 from cassandra.query import SimpleStatement
-from tests.integration import PROTOCOL_VERSION, get_cluster, remove_cluster, use_single_node
+from tests.integration import PROTOCOL_VERSION, get_cluster, remove_cluster, use_single_node, clean_keyspace
 
 log = logging.getLogger(__name__)
 
@@ -91,7 +91,7 @@ def validate_ssl_options(ssl_options):
         statement = SimpleStatement(insert_keyspace)
         statement.consistency_level = 3
         session.execute(statement)
-
+        clean_keyspace(session, "ssltest")
         drop_keyspace = "DROP KEYSPACE ssltest"
         statement = SimpleStatement(drop_keyspace)
         statement.consistency_level = ConsistencyLevel.ANY
