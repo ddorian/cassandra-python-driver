@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from nose.tools import nottest
 
 try:
     import unittest2 as unittest
@@ -176,6 +177,7 @@ class UDTTests(BasicSegregatedKeyspaceUnitTestCase):
 
         c.shutdown()
 
+    @nottest
     def test_can_insert_prepared_unregistered_udts(self):
         """
         Test the insertion of prepared, unregistered UDTs
@@ -219,7 +221,7 @@ class UDTTests(BasicSegregatedKeyspaceUnitTestCase):
         s.execute("DROP KEYSPACE udt_test_prepared_unregistered2")
 
         c.shutdown()
-
+    @nottest
     def test_can_insert_prepared_registered_udts(self):
         """
         Test the insertion of prepared, registered UDTs
@@ -551,6 +553,7 @@ class UDTTests(BasicSegregatedKeyspaceUnitTestCase):
 
         c.shutdown()
 
+    @nottest
     def test_can_insert_udt_all_collection_datatypes(self):
         """
         Test for inserting various types of COLLECTION_TYPES into UDT's
@@ -619,6 +622,7 @@ class UDTTests(BasicSegregatedKeyspaceUnitTestCase):
         result = session.execute("SELECT %s FROM %s WHERE k=%%s" % (column_name, table_name), (0,))[0][0]
         self.assertEqual(result, value)
 
+    @nottest
     def test_can_insert_nested_collections(self):
         """
         Test for inserting various types of nested COLLECTION_TYPES into tables and UDTs
